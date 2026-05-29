@@ -1,41 +1,36 @@
 """Tests for the /login endpoint."""
-import pytest
 from fastapi.testclient import TestClient
 
 from app import app
 
-client = TestClient(app)
+client = TestClient(app, follow_redirects=False)
 
 
 def test_login_exitoso():
-    """Login con credenciales válidas devuelve 200 y redirect al dashboard."""
+    """Login con credenciales válidas redirige al dashboard (303)."""
     response = client.post(
         "/login",
         data={"email": "admin@correos.com", "password": "secret123"},
     )
-    assert response.status_code == 200
-    body = response.json()
-    assert body["status"] == "ok"
-    assert body["redirect"] == "/dashboard"
+    assert response.status_code == 303
+    assert response.headers["location"] == "/dashboard"
 
 
 def test_login_fallido_password_incorrecta():
-    """Login con password incorrecta devuelve 401."""
+    """Login con password incorrecta devuelve 401 con mensaje en HTML."""
     response = client.post(
         "/login",
         data={"email": "admin@correos.com", "password": "wrongpass"},
     )
     assert response.status_code == 401
-    body = response.json()
-    assert body["status"] == "error"
-    assert "inválidas" in body["detail"]
+    assert "Credenciales inválidas" in response.text
 
 
 def test_login_fallido_usuario_inexistente():
-    """Login con email que no existe devuelve 401."""
+    """Login con email que no existe devuelve 401 con mensaje en HTML."""
     response = client.post(
         "/login",
         data={"email": "noexiste@correos.com", "password": "cualquier"},
     )
     assert response.status_code == 401
-    assert response.json()["status"] == "error"
+    assert "Credenciales inválidas" in response.text
