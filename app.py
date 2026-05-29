@@ -33,7 +33,7 @@ async def login_post(
         request,
         "login.html",
         {"error": "Credenciales inválidas. Revisá tu email y contraseña."},
-        status_code=404,
+        status_code=401,
     )
 
 
