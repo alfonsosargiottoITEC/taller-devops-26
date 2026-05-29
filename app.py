@@ -7,6 +7,7 @@ app = FastAPI()
 @app.get("/")
 def read_root():
     """Root endpoint."""
+    print("Received request at root endpoint")
     return {"message": "Hello, World!"}
 
 
