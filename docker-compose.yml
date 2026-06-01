@@ -3,9 +3,9 @@ services:
     image: postgres:15
     container_name: app_correos_db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: correos_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-correos_db}
     ports:
       - "5432:5432"
     volumes:
@@ -25,7 +25,7 @@ services:
     volumes:
       - .:/app
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/correos_db
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/correos_db}
     depends_on:
       db:
         condition: service_healthy

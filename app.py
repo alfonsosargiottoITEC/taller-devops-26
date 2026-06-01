@@ -1,7 +1,11 @@
 """FastAPI application for email service."""
 
 from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+    RedirectResponse,
+)
 from fastapi.templating import Jinja2Templates
 
 app = FastAPI(title="App Correos")
