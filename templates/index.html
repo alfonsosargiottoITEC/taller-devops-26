@@ -68,28 +68,46 @@
             min-height: 120px;
         }
         
-        button {
+        .actions {
+            display: grid;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        button, .actions a {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
             border-radius: 5px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
         }
         
-        button:hover {
+        button:hover, .actions a:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
         
-        button:active {
+        button:active, .actions a:active {
             transform: translateY(0);
         }
-        
+
+        .actions a {
+            color: #4f46e5;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+        }
+
         .message {
             margin-top: 20px;
             padding: 12px;
@@ -113,7 +131,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>📧 Enviar Correo</h1>
+        <h1>📧 Nueva app de Correos electrónicos</h1>
         
         <form id="emailForm">
             <div class="form-group">
@@ -131,7 +149,10 @@
                 <textarea id="mensaje" name="mensaje" placeholder="Escribe tu mensaje aquí..." required></textarea>
             </div>
             
-            <button type="submit">Enviar Correo</button>
+            <div class="actions">
+                <button type="submit">Enviar Correo</button>
+                <a class="secondary" href="/dashboard">Ir al dashboard</a>
+            </div>
         </form>
         
         <div id="message" class="message"></div>

@@ -1,36 +1,57 @@
 """Tests for the /login endpoint."""
-from fastapi.testclient import TestClient
 
-from app import app
+from asyncio import run
 
-client = TestClient(app, follow_redirects=False)
+from correos_app.routes import login_post
+from conftest import make_request
 
 
-def test_login_exitoso():
+def test_login_exitoso(store_factory):
     """Login con credenciales válidas redirige al dashboard (303)."""
-    response = client.post(
-        "/login",
-        data={"email": "admin@correos.com", "password": "secret123"},
+    store_factory()
+    request = make_request("/login", method="POST")
+
+    response = run(
+        login_post(
+            request,
+            email="admin@correos.com",
+            password="secret123",
+        )
     )
+
     assert response.status_code == 303
     assert response.headers["location"] == "/dashboard"
 
 
-def test_login_fallido_password_incorrecta():
+def test_login_fallido_password_incorrecta(store_factory):
     """Login con password incorrecta devuelve 401 con mensaje en HTML."""
-    response = client.post(
-        "/login",
-        data={"email": "admin@correos.com", "password": "wrongpass"},
+    store_factory()
+    request = make_request("/login", method="POST")
+
+    response = run(
+        login_post(
+            request,
+            email="admin@correos.com",
+            password="wrongpass",
+        )
     )
+
     assert response.status_code == 401
-    assert "Credenciales inválidas" in response.text
+    assert "Credenciales inválidas" in response.body.decode()
 
 
-def test_login_fallido_usuario_inexistente():
+def test_login_fallido_usuario_inexistente(store_factory):
     """Login con email que no existe devuelve 401 con mensaje en HTML."""
-    response = client.post(
-        "/login",
-        data={"email": "noexiste@correos.com", "password": "cualquier"},
+    store_factory()
+    request = make_request("/login", method="POST")
+
+    response = run(
+        login_post(
+            request,
+            email="noexiste@correos.com",
+            password="cualquier",
+        )
     )
+
     assert response.status_code == 401
-    assert "Credenciales inválidas" in response.text
+    assert "Credenciales inválidas" in response.body.decode()

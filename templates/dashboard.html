@@ -1,4 +1,54 @@
-<h1>algo de código para el dashboard</h1>
-
-<h2>Hola</h2>
-<p>Bienvenido al dashboard de mi aplicación nueva</p>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - App Correos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            color: #1f2937;
+        }
+        .card {
+            width: min(720px, 100%);
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        }
+        h1 { margin: 0 0 12px; }
+        p { line-height: 1.5; }
+        .links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+        a {
+            display: inline-block;
+            padding: 10px 14px;
+            border-radius: 999px;
+            text-decoration: none;
+            color: white;
+            background: #4f46e5;
+        }
+        a.secondary { background: #0f766e; }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <h1>Dashboard</h1>
+        <p>Desde acá podés entrar al formulario y revisar los correos enviados.</p>
+        <div class="links">
+            <a href="/">Nuevo correo</a>
+            <a class="secondary" href="/emails">Ver correos enviados</a>
+        </div>
+    </main>
+</body>
+</html>
