@@ -54,6 +54,7 @@ El proyecto toma sus valores desde `.env`.
 | `POSTGRES_DB` | Nombre de la base. |
 | `DB_HOST` | Host de PostgreSQL dentro de la red Docker. |
 | `DB_PORT` | Puerto de PostgreSQL dentro de la red Docker. |
+| `POSTGRES_PORT` | Puerto de PostgreSQL publicado en el host para el taller. |
 | `DATABASE_URL` | Cadena de conexión completa. Si está vacía, la app la arma con los valores anteriores. |
 | `SQLITE_PATH` | Ruta de respaldo local si no hay driver/DB disponible. |
 | `DATABASE_CONNECT_TIMEOUT` | Timeout de conexión a la base, en segundos. |
@@ -124,6 +125,26 @@ Ejemplo típico dentro de Docker:
 ```text
 postgresql://postgres:postgres@db:5432/correos_db
 ```
+
+### Conexión directa desde DBeaver en producción
+
+Para el taller, el Compose de producción publica temporalmente PostgreSQL en
+el puerto `5432` del VPS.
+
+Configurá una conexión PostgreSQL en DBeaver con:
+
+- Host: IP pública del Droplet
+- Port: `5432`
+- Database: valor de `POSTGRES_DB`
+- Username: valor de `POSTGRES_USER`
+- Password: valor de `POSTGRES_PASSWORD`
+
+Desde afuera no uses `DB_HOST=db`: ese nombre existe solamente dentro de la
+red de Docker. Si el Droplet tiene un Cloud Firewall, debe permitir conexiones
+TCP entrantes al puerto `5432`.
+
+> Esta exposición es intencional para el taller. Después, eliminá `ports` del
+> servicio `db` para que PostgreSQL vuelva a quedar accesible solo desde Docker.
 
 ### Entrar a la base manualmente
 
