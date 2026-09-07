@@ -1,1 +1,293 @@
-# Taller DevOps
+# Taller DevOps — App Correos
+
+Aplicación de ejemplo para el taller DevOps 2026. Sirve un formulario de envío de correos con FastAPI + Jinja2 y persiste los envíos en PostgreSQL cuando se levanta con Docker.
+
+## Quick path
+
+1. Copiá el archivo de entorno:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Revisá los valores de conexión a la base:
+
+   - `POSTGRES_USER`
+   - `POSTGRES_PASSWORD`
+   - `POSTGRES_DB`
+   - `DB_HOST=db`
+   - `DB_PORT=5432`
+   - `DATABASE_URL` vacío o armado por vos si querés sobrescribir los valores anteriores
+
+3. Levantá los servicios:
+
+   ```bash
+   docker compose up --build
+   ```
+
+4. Abrí la app en:
+
+   - http://localhost:8000
+   - http://localhost:8000/login
+   - http://localhost:8000/docs
+
+## Requisitos locales
+
+Si querés correr la app fuera de Docker:
+
+- Python 3.10+
+- Dependencias instaladas con `pip install -r requirements.txt`
+- Una instancia de PostgreSQL accesible desde la variable `DATABASE_URL`
+
+## Variables de entorno
+
+El proyecto toma sus valores desde `.env`.
+
+| Variable | Qué hace |
+|---|---|
+| `APP_ENV` | Entorno de ejecución (`development`, `production`, etc.). |
+| `SECRET_KEY` | Clave de aplicación. |
+| `LOG_LEVEL` | Nivel de logs de la app. |
+| `PORT` | Puerto publicado por Docker. |
+| `POSTGRES_USER` | Usuario de la base. |
+| `POSTGRES_PASSWORD` | Contraseña de la base. |
+| `POSTGRES_DB` | Nombre de la base. |
+| `DB_HOST` | Host de PostgreSQL dentro de la red Docker. |
+| `DB_PORT` | Puerto de PostgreSQL dentro de la red Docker. |
+| `POSTGRES_PORT` | Puerto de PostgreSQL publicado en el host para el taller. |
+| `DATABASE_URL` | Cadena de conexión completa. Si está vacía, la app la arma con los valores anteriores. |
+| `SQLITE_PATH` | Ruta de respaldo local si no hay driver/DB disponible. |
+| `DATABASE_CONNECT_TIMEOUT` | Timeout de conexión a la base, en segundos. |
+| `SMTP_SERVER` | Servidor SMTP de ejemplo. |
+| `SMTP_PORT` | Puerto SMTP. |
+| `SMTP_USER` | Usuario SMTP. |
+| `SMTP_PASSWORD` | Password SMTP. |
+
+## Docker
+
+Levantá todo en primer plano:
+
+```bash
+docker compose up --build
+```
+
+Levantá todo en detached:
+
+```bash
+docker compose up --build -d
+```
+
+Levantá la variante de producción:
+
+```bash
+docker compose -f docker-compose.prod.yaml up --build -d
+```
+
+Logs útiles:
+
+```bash
+docker compose logs -f app
+docker compose logs -f db
+docker compose logs -f app db
+```
+
+Tests desde la terminal del host, pero ejecutados dentro del contenedor:
+
+```bash
+docker compose run --rm app pytest
+```
+
+Si ya levantaste los servicios, también podés usar:
+
+```bash
+docker compose exec app pytest
+```
+
+Si cambiaste credenciales de Postgres y el volumen quedó con estado viejo, reinicializalo una vez:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+### Conexión a la base
+
+La app usa `DATABASE_URL` si está definida. Si la dejás vacía, arma la conexión con:
+
+> Importante: `5433` es solo el puerto publicado en tu máquina. Dentro de Docker, la app debe conectar a `db:5432`.
+
+```text
+postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@<DB_HOST>:<DB_PORT>/<POSTGRES_DB>
+```
+
+Ejemplo típico dentro de Docker:
+
+```text
+postgresql://postgres:postgres@db:5432/correos_db
+```
+
+### Conexión directa desde DBeaver en producción
+
+Para el taller, el Compose de producción publica temporalmente PostgreSQL en
+el puerto `5432` del VPS.
+
+Configurá una conexión PostgreSQL en DBeaver con:
+
+- Host: IP pública del Droplet
+- Port: `5432`
+- Database: valor de `POSTGRES_DB`
+- Username: valor de `POSTGRES_USER`
+- Password: valor de `POSTGRES_PASSWORD`
+
+Desde afuera no uses `DB_HOST=db`: ese nombre existe solamente dentro de la
+red de Docker. Si el Droplet tiene un Cloud Firewall, debe permitir conexiones
+TCP entrantes al puerto `5432`.
+
+> Esta exposición es intencional para el taller. Después, eliminá `ports` del
+> servicio `db` para que PostgreSQL vuelva a quedar accesible solo desde Docker.
+
+### Entrar a la base manualmente
+
+```bash
+docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+```
+
+Una vez adentro, podés ver los correos guardados con:
+
+```sql
+\dt
+SELECT * FROM sent_emails ORDER BY id DESC;
+```
+
+## Dónde se guardan los correos
+
+Los correos enviados no se guardan como archivos HTML. Se persisten en PostgreSQL, en la tabla `sent_emails`.
+
+Visualmente queda así:
+
+```text
+PostgreSQL (contenedor db)
+└── tabla sent_emails
+    ├── id
+    ├── destinatario
+    ├── asunto
+    ├── mensaje
+    └── created_at
+
+Logs de la app
+└── /var/log/app-correos/app.log
+```
+
+En Docker, la persistencia de datos vive en el volumen `db-data`.
+
+## Verificación útil
+
+- `GET /health` para revisar el estado de la app.
+- `POST /send-email` para guardar un correo de prueba.
+- `docker compose logs -f app` para seguir los logs.
+- `docker compose logs -f db` para ver el arranque de PostgreSQL.
+- `docker compose down -v` para resetear el volumen cuando cambian credenciales.
+
+## Deployment automático
+
+El workflow `.github/workflows/master-deploy.yml` corre los tests en cada PR a
+`master`. Cuando hay un push o merge a `master`, si los tests pasan, entra por
+SSH al Droplet y ejecuta:
+
+```bash
+cd /home/deploy/taller-devops-26
+git pull --ff-only origin master
+docker compose -f docker-compose.prod.yaml up -d --build --remove-orphans
+```
+
+### Prerrequisitos en el VPS
+
+- El repo está clonado en `/home/deploy/taller-devops-26`.
+- El archivo `.env` productivo ya existe en el VPS.
+- El usuario `deploy` puede ejecutar `docker compose` sin `sudo`.
+- La clave pública usada por GitHub Actions está en
+  `/home/deploy/.ssh/authorized_keys`.
+
+Si `deploy` todavía no puede usar Docker, agregalo al grupo `docker` y volvé a
+iniciar sesión:
+
+```bash
+sudo usermod -aG docker deploy
+```
+
+### Secrets de GitHub Actions
+
+Configurá estos secretos en:
+
+`Settings` -> `Secrets and variables` -> `Actions` -> `New repository secret`
+
+| Secret | Valor |
+|---|---|
+| `VPS_HOST` | IP pública del Droplet. |
+| `VPS_USER` | `deploy` |
+| `VPS_SSH_KEY` | Clave privada SSH que puede entrar como `deploy`. |
+
+Para crear una clave dedicada al deploy:
+
+```bash
+ssh-keygen -t ed25519 -C "github-actions-app-correos" -f github-actions-app-correos
+ssh-copy-id -i github-actions-app-correos.pub deploy@IP_DEL_DROPLET
+```
+
+Después pegá el contenido de `github-actions-app-correos` como secret
+`VPS_SSH_KEY`.
+
+## Comandos útiles
+
+```bash
+docker compose logs -f app
+docker compose logs -f db
+docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+docker compose down
+docker compose down -v
+```
+
+- `logs -f`: ver logs en vivo.
+- `exec db psql`: entrar a la base.
+- `down`: parar los servicios.
+- `down -v`: parar y borrar volúmenes.
+
+## Endpoints
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/` | Formulario de redacción de correo |
+| GET | `/login` | Pantalla de login |
+| GET | `/dashboard` | Dashboard |
+| POST | `/login` | Validación de credenciales |
+| POST | `/send-email` | Guarda un correo en la base |
+| GET | `/health` | Health check |
+| GET | `/docs` | Documentación interactiva (Swagger UI) |
+
+## Estructura
+
+```text
+app.py              # Entrada mínima de la app
+correos_app/
+  main.py           # Arma la aplicación FastAPI
+  routes.py         # Rutas HTTP
+  storage.py        # Persistencia de correos
+  config.py         # Variables de entorno
+  schemas.py        # Modelos de datos
+requirements.txt            # Dependencias de Python
+docker-compose.yaml          # Servicios para desarrollo local
+docker-compose.prod.yaml     # Servicios para producción
+Dockerfile              # Imagen compartida por ambos entornos
+.dockerignore                # Archivos excluidos de la imagen
+.env.example                 # Variables para crear el .env
+templates/
+  index.html        # Formulario de correo
+  login.html        # Pantalla de login
+  dashboard.html    # Dashboard
+```
+
+## Recomendación
+
+- Para explicar Docker y Compose, dejá esta regla clara: `5433` es el puerto visible desde el host, pero la app siempre habla con `db:5432` dentro de la red.
+- Si cambian usuario, password o nombre de la base, hacé `docker compose down -v` antes de volver a levantar.
+- Para clases o demos, `docker compose up --build -d` + `docker compose logs -f app` suele ser el flujo más cómodo.
