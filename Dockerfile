@@ -1,16 +1,21 @@
 FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1     PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y     postgresql-client     && rm -rf /var/lib/apt/lists/*
-
+# Las dependencias se instalan antes que el código para aprovechar la caché.
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# El contenedor no necesita ejecutar la aplicación como root.
+RUN groupadd --system app && useradd --system --gid app --no-create-home app
+
+# Se copia el proyecto completo. .dockerignore decide qué queda afuera.
+COPY --chown=app:app . .
+
+USER app
 
 EXPOSE 8000
 

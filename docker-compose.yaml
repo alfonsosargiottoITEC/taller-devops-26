@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: app-correos-app
+    environment:
+      PYTEST_ADDOPTS: "-o cache_dir=/tmp/.pytest_cache"
     depends_on:
       db:
         condition: service_healthy

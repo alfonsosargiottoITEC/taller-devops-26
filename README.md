@@ -76,6 +76,12 @@ Levantá todo en detached:
 docker compose up --build -d
 ```
 
+Levantá la variante de producción:
+
+```bash
+docker compose -f docker-compose.prod.yaml up --build -d
+```
+
 Logs útiles:
 
 ```bash
@@ -198,10 +204,12 @@ correos_app/
   storage.py        # Persistencia de correos
   config.py         # Variables de entorno
   schemas.py        # Modelos de datos
-requirements.txt    # Dependencias de Python
-docker-compose.yml  # Servicios app + PostgreSQL
-Dockerfile          # Imagen de la app
-.env.example        # Variables para crear el .env
+requirements.txt            # Dependencias de Python
+docker-compose.yaml          # Servicios para desarrollo local
+docker-compose.prod.yaml     # Servicios para producción
+Dockerfile              # Imagen compartida por ambos entornos
+.dockerignore                # Archivos excluidos de la imagen
+.env.example                 # Variables para crear el .env
 templates/
   index.html        # Formulario de correo
   login.html        # Pantalla de login
