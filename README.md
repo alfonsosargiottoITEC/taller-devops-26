@@ -188,6 +188,55 @@ En Docker, la persistencia de datos vive en el volumen `db-data`.
 - `docker compose logs -f db` para ver el arranque de PostgreSQL.
 - `docker compose down -v` para resetear el volumen cuando cambian credenciales.
 
+## Deployment automático
+
+El workflow `.github/workflows/master-deploy.yml` corre los tests en cada PR a
+`master`. Cuando hay un push o merge a `master`, si los tests pasan, entra por
+SSH al Droplet y ejecuta:
+
+```bash
+cd /home/deploy/taller-devops-26
+git pull --ff-only origin master
+docker compose -f docker-compose.prod.yaml up -d --build --remove-orphans
+```
+
+### Prerrequisitos en el VPS
+
+- El repo está clonado en `/home/deploy/taller-devops-26`.
+- El archivo `.env` productivo ya existe en el VPS.
+- El usuario `deploy` puede ejecutar `docker compose` sin `sudo`.
+- La clave pública usada por GitHub Actions está en
+  `/home/deploy/.ssh/authorized_keys`.
+
+Si `deploy` todavía no puede usar Docker, agregalo al grupo `docker` y volvé a
+iniciar sesión:
+
+```bash
+sudo usermod -aG docker deploy
+```
+
+### Secrets de GitHub Actions
+
+Configurá estos secretos en:
+
+`Settings` -> `Secrets and variables` -> `Actions` -> `New repository secret`
+
+| Secret | Valor |
+|---|---|
+| `VPS_HOST` | IP pública del Droplet. |
+| `VPS_USER` | `deploy` |
+| `VPS_SSH_KEY` | Clave privada SSH que puede entrar como `deploy`. |
+
+Para crear una clave dedicada al deploy:
+
+```bash
+ssh-keygen -t ed25519 -C "github-actions-app-correos" -f github-actions-app-correos
+ssh-copy-id -i github-actions-app-correos.pub deploy@IP_DEL_DROPLET
+```
+
+Después pegá el contenido de `github-actions-app-correos` como secret
+`VPS_SSH_KEY`.
+
 ## Comandos útiles
 
 ```bash
