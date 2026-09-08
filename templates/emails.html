@@ -5,83 +5,209 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Correos enviados</title>
     <style>
+        :root {
+            --bg: #f3f6fb;
+            --panel: #ffffff;
+            --ink: #111827;
+            --muted: #64748b;
+            --line: #dbe3ef;
+            --primary: #3557d7;
+            --primary-soft: #e8edff;
+            --teal: #087f7a;
+            --danger: #a5161a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%);
-            color: #1f2937;
-            padding: 32px 16px;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            padding: 28px 16px 40px;
         }
+
         .wrap {
-            width: min(1100px, 100%);
+            width: min(1120px, 100%);
             margin: 0 auto;
         }
+
         .header {
             display: flex;
             justify-content: space-between;
-            gap: 16px;
-            align-items: end;
-            margin-bottom: 24px;
+            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 22px;
             flex-wrap: wrap;
         }
-        h1 { margin: 0; }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            height: 26px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: #2437a6;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        h1 {
+            margin: 8px 0 6px;
+            font-size: clamp(2rem, 4vw, 3rem);
+            line-height: 1;
+            letter-spacing: 0;
+        }
+
+        .lead {
+            margin: 0;
+            color: #334155;
+            font-size: 1rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
         .actions a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0 15px;
+            border-radius: 999px;
             text-decoration: none;
             color: white;
-            background: #4f46e5;
-            padding: 10px 14px;
-            border-radius: 999px;
-            margin-left: 8px;
-            display: inline-block;
+            background: var(--primary);
+            font-size: 0.95rem;
+            font-weight: 700;
+            box-shadow: 0 8px 18px rgba(53, 87, 215, 0.18);
         }
-        .actions a.secondary { background: #0f766e; }
-        .actions a.logout { background: #991b1b; }
+
+        .actions a.secondary {
+            background: var(--teal);
+            box-shadow: 0 8px 18px rgba(8, 127, 122, 0.14);
+        }
+
+        .actions a.logout {
+            background: var(--danger);
+            box-shadow: 0 8px 18px rgba(165, 22, 26, 0.14);
+        }
+
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 18px;
+            align-items: start;
         }
+
         .email {
-            background: white;
-            border-radius: 16px;
-            padding: 18px;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-            border: 1px solid #e5e7eb;
-        }
-        .meta {
+            min-height: 250px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
             display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
             justify-content: space-between;
             gap: 12px;
-            color: #6b7280;
-            font-size: 0.92rem;
-            margin-bottom: 12px;
+            color: var(--muted);
+            font-size: 0.86rem;
         }
+
+        .id-pill {
+            display: inline-flex;
+            align-items: center;
+            height: 26px;
+            padding: 0 9px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 800;
+            flex: 0 0 auto;
+        }
+
+        .date {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: right;
+        }
+
         .subject {
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin: 0 0 8px;
-        }
-        .message {
-            white-space: pre-wrap;
-            line-height: 1.5;
             margin: 0;
+            font-size: 1.18rem;
+            line-height: 1.25;
+            font-weight: 800;
+            overflow-wrap: anywhere;
         }
+
+        .recipient {
+            margin: 0;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e8eef6;
+            color: #334155;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .recipient strong {
+            color: var(--ink);
+        }
+
+        .message {
+            margin: 0;
+            color: #1f2937;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            display: -webkit-box;
+            -webkit-line-clamp: 7;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
         .empty {
             background: white;
             border: 1px dashed #cbd5e1;
-            border-radius: 16px;
+            border-radius: 8px;
             padding: 32px;
             text-align: center;
             color: #475569;
         }
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: #e0e7ff;
-            color: #3730a3;
-            font-size: 0.82rem;
-            font-weight: 700;
+
+        @media (max-width: 720px) {
+            body {
+                padding-top: 20px;
+            }
+
+            .header {
+                align-items: stretch;
+            }
+
+            .actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .actions a {
+                flex: 1 1 auto;
+            }
         }
     </style>
 </head>
@@ -89,9 +215,9 @@
     <div class="wrap">
         <div class="header">
             <div>
-                <span class="badge">/emails</span>
+                <span class="eyebrow">/emails</span>
                 <h1>Correos enviados</h1>
-                <p>Listado de mensajes guardados en la base de datos.</p>
+                <p class="lead">Listado de mensajes guardados en la base de datos.</p>
             </div>
             <div class="actions">
                 <a href="/">Nuevo correo</a>
@@ -104,12 +230,12 @@
         <div class="grid">
             {% for email in emails %}
             <article class="email">
-                <div class="meta">
-                    <span>#{{ email.id }}</span>
-                    <span>{{ email.created_at }}</span>
+                <div class="card-top">
+                    <span class="id-pill">#{{ email.id }}</span>
+                    <span class="date">{{ email.created_at }}</span>
                 </div>
-                <p class="subject">{{ email.asunto }}</p>
-                <p><strong>Para:</strong> {{ email.destinatario }}</p>
+                <h2 class="subject">{{ email.asunto }}</h2>
+                <p class="recipient"><strong>Para:</strong> {{ email.destinatario }}</p>
                 <p class="message">{{ email.mensaje }}</p>
             </article>
             {% endfor %}
