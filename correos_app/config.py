@@ -11,6 +11,8 @@ import os
 class Settings:
     app_env: str
     secret_key: str
+    auth_username: str
+    auth_password: str
     log_level: str
     port: int
     postgres_user: str
@@ -37,6 +39,8 @@ def get_settings() -> Settings:
     return Settings(
         app_env=os.getenv("APP_ENV", "development"),
         secret_key=os.getenv("SECRET_KEY", "change-me"),
+        auth_username=os.getenv("AUTH_USERNAME", "admin@correos.com"),
+        auth_password=os.getenv("AUTH_PASSWORD", "secret123"),
         log_level=os.getenv("LOG_LEVEL", "INFO"),
         port=int(os.getenv("PORT", "8000")),
         postgres_user=os.getenv("POSTGRES_USER", "postgres"),

@@ -5,12 +5,24 @@ from asyncio import run
 from correos_app.routes import emails_view, list_emails, send_email
 from conftest import FakeEmail, make_request
 
+AUTH_SESSION = {"authenticated": True, "user": "admin@correos.com"}
+
+
+def test_api_list_emails_requires_auth(store_factory):
+    store_factory()
+    request = make_request("/api/emails")
+
+    response = run(list_emails(request))
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/login"
+
 
 def test_api_list_emails_returns_json(store_factory):
     store_factory([
         FakeEmail(1, "ana@correo.com", "Hola", "Mensaje de prueba", "2026-08-17T10:00:00"),
     ])
-    request = make_request("/api/emails")
+    request = make_request("/api/emails", session=AUTH_SESSION)
 
     response = run(list_emails(request))
 
@@ -23,7 +35,7 @@ def test_emails_view_renders_list(store_factory):
     store_factory([
         FakeEmail(1, "ana@correo.com", "Hola", "Mensaje de prueba", "2026-08-17T10:00:00"),
     ])
-    request = make_request("/emails")
+    request = make_request("/emails", session=AUTH_SESSION)
 
     response = run(emails_view(request))
 
@@ -32,9 +44,24 @@ def test_emails_view_renders_list(store_factory):
     assert response.context["emails"][0].destinatario == "ana@correo.com"
 
 
+def test_send_email_requires_auth(store_factory):
+    store_factory()
+    request = make_request("/send-email", method="POST", headers={"content-type": "application/json"})
+
+    response = run(send_email(request))
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/login"
+
+
 def test_send_email_persists_and_returns_201(store_factory):
     store = store_factory()
-    request = make_request("/send-email", method="POST", headers={"content-type": "application/json"})
+    request = make_request(
+        "/send-email",
+        method="POST",
+        headers={"content-type": "application/json"},
+        session=AUTH_SESSION,
+    )
 
     async def fake_json():
         return {
