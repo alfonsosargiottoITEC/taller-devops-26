@@ -64,6 +64,7 @@ def make_request(
     method: str = "GET",
     body: bytes = b"",
     headers: dict[str, str] | None = None,
+    session: dict | None = None,
 ) -> Request:
     raw_headers = [
         (name.lower().encode("latin-1"), value.encode("latin-1"))
@@ -80,6 +81,7 @@ def make_request(
         "server": ("testserver", 80),
         "scheme": "http",
         "http_version": "1.1",
+        "session": session or {},
     }
 
     async def receive():

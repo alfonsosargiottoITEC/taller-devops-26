@@ -10,7 +10,7 @@ Aplicación de ejemplo para el taller DevOps 2026. Sirve un formulario de envío
    cp .env.example .env
    ```
 
-2. Revisá los valores de conexión a la base:
+2. Revisá los valores de conexión a la base y del login:
 
    - `POSTGRES_USER`
    - `POSTGRES_PASSWORD`
@@ -18,6 +18,8 @@ Aplicación de ejemplo para el taller DevOps 2026. Sirve un formulario de envío
    - `DB_HOST=db`
    - `DB_PORT=5432`
    - `DATABASE_URL` vacío o armado por vos si querés sobrescribir los valores anteriores
+   - `AUTH_USERNAME`
+   - `AUTH_PASSWORD`
 
 3. Levantá los servicios:
 
@@ -46,7 +48,9 @@ El proyecto toma sus valores desde `.env`.
 | Variable | Qué hace |
 |---|---|
 | `APP_ENV` | Entorno de ejecución (`development`, `production`, etc.). |
-| `SECRET_KEY` | Clave de aplicación. |
+| `SECRET_KEY` | Clave usada para firmar la cookie de sesión. Cambiala en producción. |
+| `AUTH_USERNAME` | Email del único usuario administrador. |
+| `AUTH_PASSWORD` | Password del único usuario administrador. Cambiala en producción. |
 | `LOG_LEVEL` | Nivel de logs de la app. |
 | `PORT` | Puerto publicado por Docker. |
 | `POSTGRES_USER` | Usuario de la base. |
@@ -62,6 +66,20 @@ El proyecto toma sus valores desde `.env`.
 | `SMTP_PORT` | Puerto SMTP. |
 | `SMTP_USER` | Usuario SMTP. |
 | `SMTP_PASSWORD` | Password SMTP. |
+
+## Login
+
+La app usa un login simple con un solo usuario administrador. Configuralo en `.env`:
+
+```env
+AUTH_USERNAME=admin@correos.com
+AUTH_PASSWORD=una-password-segura
+SECRET_KEY=una-clave-larga-y-random
+```
+
+Con sesión iniciada se puede acceder al formulario, dashboard, listado y API de correos. Sin sesión, esas rutas redirigen a `/login`. `/health` queda público para que Docker pueda revisar el estado del servicio. En `APP_ENV=production`, FastAPI no expone `/docs`, `/redoc` ni `/openapi.json`.
+
+> En `APP_ENV=production`, la cookie de sesión se marca como segura. Para que el navegador la conserve, accedé a la app por HTTPS.
 
 ## Docker
 
@@ -256,13 +274,16 @@ docker compose down -v
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/` | Formulario de redacción de correo |
+| GET | `/` | Formulario de redacción de correo, requiere login |
 | GET | `/login` | Pantalla de login |
-| GET | `/dashboard` | Dashboard |
 | POST | `/login` | Validación de credenciales |
-| POST | `/send-email` | Guarda un correo en la base |
-| GET | `/health` | Health check |
-| GET | `/docs` | Documentación interactiva (Swagger UI) |
+| GET | `/logout` | Cierra la sesión |
+| GET | `/dashboard` | Dashboard, requiere login |
+| GET | `/emails` | Listado HTML de correos, requiere login |
+| GET | `/api/emails` | Listado JSON de correos, requiere login |
+| POST | `/send-email` | Guarda un correo en la base, requiere login |
+| GET | `/health` | Health check público |
+| GET | `/docs` | Documentación interactiva solo en desarrollo |
 
 ## Estructura
 
