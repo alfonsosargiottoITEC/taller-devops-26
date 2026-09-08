@@ -13,6 +13,7 @@ class Settings:
     secret_key: str
     auth_username: str
     auth_password: str
+    session_cookie_secure: bool | None
     log_level: str
     port: int
     postgres_user: str
@@ -35,12 +36,20 @@ class Settings:
         )
 
 
+def _optional_bool(name: str) -> bool | None:
+    raw_value = os.getenv(name)
+    if raw_value is None or raw_value.strip() == "":
+        return None
+    return raw_value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def get_settings() -> Settings:
     return Settings(
         app_env=os.getenv("APP_ENV", "development"),
         secret_key=os.getenv("SECRET_KEY", "change-me"),
         auth_username=os.getenv("AUTH_USERNAME", "admin@correos.com"),
         auth_password=os.getenv("AUTH_PASSWORD", "secret123"),
+        session_cookie_secure=_optional_bool("SESSION_COOKIE_SECURE"),
         log_level=os.getenv("LOG_LEVEL", "INFO"),
         port=int(os.getenv("PORT", "8000")),
         postgres_user=os.getenv("POSTGRES_USER", "postgres"),

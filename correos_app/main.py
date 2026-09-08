@@ -33,11 +33,16 @@ def create_app() -> FastAPI:
     )
     app.state.settings = settings
     app.state.email_store = EmailStore(settings)
+    session_cookie_secure = (
+        production
+        if settings.session_cookie_secure is None
+        else settings.session_cookie_secure
+    )
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.secret_key,
         same_site="lax",
-        https_only=production,
+        https_only=session_cookie_secure,
     )
 
     @app.on_event("startup")

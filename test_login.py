@@ -101,3 +101,28 @@ def test_docs_se_desactivan_en_produccion(monkeypatch):
     assert app.docs_url is None
     assert app.redoc_url is None
     assert app.openapi_url is None
+
+
+def _session_middleware_kwargs(app):
+    for middleware in app.user_middleware:
+        if middleware.cls.__name__ == "SessionMiddleware":
+            return middleware.kwargs
+    raise AssertionError("SessionMiddleware no configurado")
+
+
+def test_cookie_de_sesion_es_segura_por_default_en_produccion(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.delenv("SESSION_COOKIE_SECURE", raising=False)
+
+    app = create_app()
+
+    assert _session_middleware_kwargs(app)["https_only"] is True
+
+
+def test_cookie_de_sesion_puede_permitir_http_para_taller(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("SESSION_COOKIE_SECURE", "false")
+
+    app = create_app()
+
+    assert _session_middleware_kwargs(app)["https_only"] is False

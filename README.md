@@ -51,6 +51,7 @@ El proyecto toma sus valores desde `.env`.
 | `SECRET_KEY` | Clave usada para firmar la cookie de sesión. Cambiala en producción. |
 | `AUTH_USERNAME` | Email del único usuario administrador. |
 | `AUTH_PASSWORD` | Password del único usuario administrador. Cambiala en producción. |
+| `SESSION_COOKIE_SECURE` | Define si la cookie de sesión exige HTTPS. Usá `true` con HTTPS y `false` solo si el taller entra por HTTP directo al VPS. |
 | `LOG_LEVEL` | Nivel de logs de la app. |
 | `PORT` | Puerto publicado por Docker. |
 | `POSTGRES_USER` | Usuario de la base. |
@@ -75,11 +76,12 @@ La app usa un login simple con un solo usuario administrador. Configuralo en `.e
 AUTH_USERNAME=admin@correos.com
 AUTH_PASSWORD=una-password-segura
 SECRET_KEY=una-clave-larga-y-random
+SESSION_COOKIE_SECURE=true
 ```
 
 Con sesión iniciada se puede acceder al formulario, dashboard, listado y API de correos. Sin sesión, esas rutas redirigen a `/login`. `/health` queda público para que Docker pueda revisar el estado del servicio. En `APP_ENV=production`, FastAPI no expone `/docs`, `/redoc` ni `/openapi.json`.
 
-> En `APP_ENV=production`, la cookie de sesión se marca como segura. Para que el navegador la conserve, accedé a la app por HTTPS.
+> Si todavía entrás por `http://IP_DEL_VPS:8009`, poné `SESSION_COOKIE_SECURE=false` en el `.env` productivo y recreá el contenedor. Volvé a `true` cuando pongas HTTPS.
 
 ## Docker
 
